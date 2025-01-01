@@ -78,11 +78,13 @@ def connect_characters_double(image):
     return result_image
 
 
-def horizontal_projection(binary_image):
+def horizontal_projection(binary_image,bi_image):
     '''
     水平投影，判断字符的具体范围(上下边界)
     binary_image:二值化图像
+    bi_image: 二值化图像(未经膨胀)
     - return horizontal_area: 具体范围的图像
+    - return image_for_split: 用于分割的图像
     '''
 
     # 水平方向投影：计算每一行的像素和
@@ -95,8 +97,8 @@ def horizontal_projection(binary_image):
     start, end = max(horizontal_split_positions, key=lambda x: x[1] - x[0])
 
     horizontal_area = binary_image[start:end+1, :]
-
-    return horizontal_area
+    image_for_split = bi_image[start:end+1,:]
+    return horizontal_area,image_for_split
 
 # 垂直投影分割
 def vertical_projection(binary_image):
@@ -241,7 +243,7 @@ def main(image):
 
 
     # 5. 水平投影 + 分割
-    horizontal_proj = horizontal_projection(binary_image)
+    horizontal_proj,bi_image = horizontal_projection(binary_image,bi_image)
 
     # 6. 垂直投影分割
     vertical_proj = vertical_projection(horizontal_proj)
@@ -265,4 +267,3 @@ if __name__ == "__main__":
         image_path = str(i) + '.png'
         image = cv2.imread(image_path)
         segments = main(image)
-
