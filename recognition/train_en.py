@@ -23,7 +23,7 @@ else:
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # 数据加载
-dataset = datasets.ImageFolder(root='dataset/train/chars2', transform=transform)
+dataset = datasets.ImageFolder(root='dataset/chars2', transform=transform)
 train_loader = torch.utils.data.DataLoader(dataset, batch_size=32, shuffle=True)
 
 # 定义 ResNet18 模型
@@ -64,4 +64,4 @@ for epoch in range(10):  # 可调整训练轮数
 
 # 保存模型
 torch.save(model_char2.state_dict(), "eng_num_char_classifier.pth")
-print("Model saved as char_classifier.pth")
+print("Model saved as eng_num_char_classifier.pth")

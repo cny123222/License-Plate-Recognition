@@ -13,9 +13,9 @@ def main(image_path):
 
     char_images = split_char(plate_image)
 
-    characters = recognize_characters(char_images)
-    print(characters)
+    # characters = recognize_characters(char_images)
+    # print(characters)
 
 
 if __name__ == "__main__":
-    main("dataset/test/timg1.jpg")
+    main("dataset/test/Yes_img/3_2.jpg")

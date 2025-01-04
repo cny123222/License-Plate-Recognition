@@ -263,6 +263,6 @@ def split_char(image):
     segments = vertical_segmentation(bi_image,horizontal_proj, max_distance)
 
     #  显示分割后的字符
-    # show_segmented_characters(segments)
+    show_segmented_characters(segments)
 
     return segments

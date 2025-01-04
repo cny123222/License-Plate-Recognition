@@ -23,7 +23,7 @@ else:
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # 数据加载
-dataset = datasets.ImageFolder(root='dataset/train/charsChinese', transform=transform)
+dataset = datasets.ImageFolder(root='dataset/charsChinese', transform=transform)
 train_loader = torch.utils.data.DataLoader(dataset, batch_size=32, shuffle=True)
 
 # 定义 ResNet18 模型
