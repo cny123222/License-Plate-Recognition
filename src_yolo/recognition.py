@@ -10,7 +10,7 @@ transform = transforms.Compose([
     transforms.Grayscale(),
     transforms.Resize((32, 32)),
     transforms.ToTensor(),
-    transforms.Lambda(lambda x: x.repeat(3, 1, 1)),  # 将单通道扩展为三通道
+    transforms.Lambda(lambda x: x.repeat(3, 1, 1)),
     transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
 ])
 
@@ -43,7 +43,7 @@ chinese_model.eval()
 # 加载英文和数字字符识别模型
 num_classes_eng_num = 34
 eng_num_model = EngNumCharClassifier(num_classes=num_classes_eng_num)
-eng_num_model.load_state_dict(torch.load("checkpoints/english_char_classifier_0.9942.pth"))
+eng_num_model.load_state_dict(torch.load("checkpoints/char_classifier_0.9904.pth"))
 eng_num_model.eval()
 
 # 类别映射

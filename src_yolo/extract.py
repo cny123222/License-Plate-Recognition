@@ -37,12 +37,12 @@ def extract_plate_yolo(image, expand_ratio=0.2):
 
     # 提取角点并进行倾斜矫正
     # plate_image_corrected = correct_skew(plate_image)
-    plate_image_corrected = locate_license_plate(plate_image)
+    # plate_image_corrected = locate_license_plate(plate_image)
 
     # 进行颜色检测
-    plate_color = detect_plate_color(plate_image_corrected)
+    plate_color = detect_plate_color(plate_image)
 
-    return plate_image_corrected, plate_color
+    return plate_image, plate_color
 
 
 def expand_bbox(image, box, scale=0.2):
@@ -136,9 +136,9 @@ def locate_license_plate(image):
     # 1. 预处理
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-    edged = cv2.Canny(blurred, 50, 150)
+    edged = cv2.Canny(blurred, 100, 200)
 
-    cv_show("Edged", edged)
+    # cv_show("Edged", edged)
 
     # 形态学操作，闭操作连接边缘
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
@@ -147,7 +147,7 @@ def locate_license_plate(image):
     # 2. 提取轮廓
     contours, _ = cv2.findContours(closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    cv_show("Closed", closed)
+    # cv_show("Closed", closed)
 
     # 3. 几何约束筛选车牌轮廓
     plate_contour = None
@@ -292,3 +292,11 @@ if __name__ == "__main__":
             cv2.destroyAllWindows()
         else:
             print("未检测到车牌")
+
+
+if __name__ == '__main__':
+    origin_image = cv2.imread("test_images/034.jpg")
+    plate_image, plate_color = extract_plate_yolo(origin_image)
+    print(f"车牌颜色: {plate_color}")
+    # cv_show("plate", plate_image)
+    cv2.imwrite("plate.jpg", plate_image)
