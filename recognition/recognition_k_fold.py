@@ -12,10 +12,8 @@ import numpy as np
 transform = transforms.Compose([
     transforms.Grayscale(),
     transforms.Resize((32, 32)),
-    transforms.RandomRotation(15),
-    transforms.ColorJitter(brightness=0.2, contrast=0.2),
     transforms.ToTensor(),
-    transforms.Lambda(lambda x: x.repeat(3, 1, 1)),  # 将单通道扩展为三通道
+    transforms.Lambda(lambda x: x.repeat(3, 1, 1)),
     transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
 ])
 
@@ -25,18 +23,19 @@ else:
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # 加载完整数据集
-dataset = datasets.ImageFolder(root='dataset/train/charsChinese', transform=transform)
+dataset = datasets.ImageFolder(root='dataset/chars2', transform=transform)
 data_labels = [y for _, y in dataset.imgs]  # 提取每张图片的标签
 
 # 定义 K 折交叉验证
 kfold = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 num_classes = len(dataset.classes)
+print(f"Number of classes: {num_classes}")
 
 # 模型定义
 class CharClassifier(nn.Module):
     def __init__(self, num_classes):
         super(CharClassifier, self).__init__()
-        self.model = resnet18(pretrained=False)
+        self.model = resnet18(pretrained=True)
         self.model.fc = nn.Linear(self.model.fc.in_features, num_classes)
 
     def forward(self, x):
@@ -74,12 +73,15 @@ for fold, (train_idx, val_idx) in enumerate(kfold.split(dataset.imgs, data_label
     # 损失函数和优化器
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-4)
+
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.2)
     
     # 训练过程
-    for epoch in range(10):  # 每折训练 10 个 Epoch
+    num_epochs = 20
+    for epoch in range(num_epochs):
         model.train()
         total_loss = 0
-        progress_bar = tqdm(train_loader, desc=f"Fold {fold + 1}, Epoch {epoch + 1}/10", leave=False)
+        progress_bar = tqdm(train_loader, desc=f"Fold {fold + 1}, Epoch {epoch + 1}/{num_epochs}", leave=False)
         for images, labels in progress_bar:
             images, labels = images.to(device), labels.to(device)
             optimizer.zero_grad()
