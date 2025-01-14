@@ -3,7 +3,7 @@ from tkinter import *
 # from tkinter.ttk import *
 from PIL import Image, ImageTk
 from tkinter.font import Font
-from extract import extract_plate_yolo
+from extract import extract_plate
 from split import split_char
 from recognition import recognize_characters
 import cv2
@@ -70,9 +70,14 @@ class WinGUI(Tk):
         返回定位图路径、识别结果、车牌颜色
         """
         origin_image = cv2.imread(image_path)
-        plate_image, plate_color = extract_plate_yolo(origin_image)
+        plate_image, plate_color = extract_plate(origin_image)
         char_images = split_char(plate_image)
         characters = recognize_characters(char_images)
+        ### upd 2025/1/14 added · between '苏C' and 'Q123222'
+        new_characters = characters[0:2]
+        new_characters += '·'
+        new_characters += characters[2:]
+        characters = new_characters
 
         # 将颜色字符串转换为颜色编码
         color_code = COLOR_MAP.get(plate_color, "#FFFFFF")
@@ -171,22 +176,26 @@ class WinGUI(Tk):
     # 初始化frame用于装载车牌定位图
     def __tk_frame_frame_locate(self,parent):
         frame = Frame(parent, borderwidth=5, relief='ridge')
-        frame.place(x=740, y=372, width=242, height=100)
+        # frame.place(x=740, y=372, width=242, height=100)
+        frame.place(x=740, y=372, width=242, height=84) #upd 2025/1/14 adjusted the ratio
         return frame
     # 初始化label用于显示车牌定位图
     def __tk_label_label_locate(self,parent):
         label = Label(parent,anchor="center", )
-        label.place(x=0, y=0, width=235, height=93)
+        # label.place(x=0, y=0, width=235, height=93)
+        label.place(x=0, y=0, width=235, height=77) #upd 2025/1/14 adjusted the ratio
         return label
     # 初始化frame用于装载车牌识别结果
     def __tk_frame_frame_result(self,parent):
         frame = Frame(parent, borderwidth=5, relief='ridge')
-        frame.place(x=740, y=530, width=242, height=100)
+        # frame.place(x=740, y=530, width=242, height=100)
+        frame.place(x=740, y=530, width=242, height=84) #upd 2025/1/14 adjusted the ratio
         return frame
     # 初始化label用于显示车牌识别结果
     def __tk_label_label_result(self,parent):
         label = Label(parent,anchor="center")
-        label.place(x=0, y=0, width=235, height=93)
+        # label.place(x=0, y=0, width=235, height=93)
+        label.place(x=0, y=0, width=235, height=77) #upd 2025/1/14 adjusted the ratio
         return label
     # 初始化label用于显示文字 “车牌定位：”
     def __tk_label_label_name_locate(self,parent):
