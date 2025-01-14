@@ -33,12 +33,11 @@ def extract_plate_yolo(image, expand_ratio=0.2):
     # 获取第一个检测到的车牌边界框（默认置信度最高）
     box = predictions[0, :4].cpu().numpy().astype(int)  # 转换为整数坐标
     x1, y1, x2, y2 = expand_bbox(image, box, expand_ratio)
-
-    # 仿射变换矫正车牌倾斜
     plate_image = image[y1:y2, x1:x2]
 
     # 提取角点并进行倾斜矫正
-    plate_image_corrected = correct_skew(plate_image)
+    # plate_image_corrected = correct_skew(plate_image)
+    plate_image_corrected = locate_license_plate(plate_image)
 
     # 进行颜色检测
     plate_color = detect_plate_color(plate_image_corrected)
@@ -122,6 +121,76 @@ def correct_skew(image):
                             [height - 1, width - 1]], dtype="float32")
 
     src_pts = box.astype("float32")
+    M = cv2.getPerspectiveTransform(src_pts, dst_pts)
+    warped = cv2.warpPerspective(image, M, (max(width, height), min(width, height)))
+
+    return warped
+
+
+def locate_license_plate(image):
+    """
+    精确定位车牌位置
+    :param image: 含有车牌的大致范围图像
+    :return: 矫正后的车牌图像
+    """
+    # 1. 预处理
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+    edged = cv2.Canny(blurred, 50, 150)
+
+    cv_show("Edged", edged)
+
+    # 形态学操作，闭操作连接边缘
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
+    closed = cv2.morphologyEx(edged, cv2.MORPH_CLOSE, kernel)
+
+    # 2. 提取轮廓
+    contours, _ = cv2.findContours(closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    cv_show("Closed", closed)
+
+    # 3. 几何约束筛选车牌轮廓
+    plate_contour = None
+    for contour in contours:
+        # 计算最小外接矩形
+        rect = cv2.minAreaRect(contour)
+        box = cv2.boxPoints(rect)
+        box = np.int0(box)
+
+        # 计算面积和长宽比
+        width = int(rect[1][0])
+        height = int(rect[1][1])
+        if width == 0 or height == 0:
+            continue
+        aspect_ratio = max(width, height) / min(width, height)
+
+        # 计算轮廓面积与矩形面积比值
+        area = cv2.contourArea(contour)
+        rect_area = width * height
+        if rect_area == 0:
+            continue
+        extent = area / rect_area
+
+        # 几何约束判断
+        if 2 < aspect_ratio < 5 and extent > 0.6 and 500 < rect_area < 50000:
+            plate_contour = box
+            break  # 假设只有一个车牌
+
+    if plate_contour is None:
+        print("未找到符合条件的车牌轮廓")
+        return None
+    
+    cv_show("Plate Contour", cv2.drawContours(image.copy(), [plate_contour], -1, (0, 255, 0), 2))
+
+    # 4. 透视变换矫正车牌
+    rect = cv2.minAreaRect(plate_contour)
+    width, height = int(rect[1][0]), int(rect[1][1])
+    if width > height:
+        dst_pts = np.array([[0, 0], [width - 1, 0], [width - 1, height - 1], [0, height - 1]], dtype="float32")
+    else:
+        dst_pts = np.array([[0, 0], [height - 1, 0], [height - 1, width - 1], [0, width - 1]], dtype="float32")
+
+    src_pts = plate_contour.astype("float32")
     M = cv2.getPerspectiveTransform(src_pts, dst_pts)
     warped = cv2.warpPerspective(image, M, (max(width, height), min(width, height)))
 

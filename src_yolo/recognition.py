@@ -37,13 +37,13 @@ class EngNumCharClassifier(nn.Module):
 # 加载中文字符识别模型
 num_classes_chinese = 31
 chinese_model = ChineseCharClassifier(num_classes=num_classes_chinese)
-chinese_model.load_state_dict(torch.load("chinese_char_classifier.pth"))
+chinese_model.load_state_dict(torch.load("checkpoints/chinese_char_classifier_0.9879.pth"))
 chinese_model.eval()
 
 # 加载英文和数字字符识别模型
 num_classes_eng_num = 34
 eng_num_model = EngNumCharClassifier(num_classes=num_classes_eng_num)
-eng_num_model.load_state_dict(torch.load("eng_num_char_classifier.pth"))
+eng_num_model.load_state_dict(torch.load("checkpoints/english_char_classifier_0.9942.pth"))
 eng_num_model.eval()
 
 # 类别映射
