@@ -1,2 +1,1 @@
-# License-Plate-Recognition
-From SJTU-ICE2607-Lab6
+# See our `.exe` in `dist.zip`
