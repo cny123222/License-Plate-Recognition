@@ -539,7 +539,7 @@ def extract_retina(image):
                 if processed is None:
                     return False
                 else:
-                    name = "plate.jpg"
+                    name = "../License-Plate-Recognition/figures/pc1.jpg"
                     cv2.imwrite(name, processed)
                     return True
 
