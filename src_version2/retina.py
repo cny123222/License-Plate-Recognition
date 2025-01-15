@@ -545,4 +545,4 @@ def extract_retina(image):
 
 if __name__ == '__main__':
     image = '2.jpg'
-    extract_retina(image)
+    extract_retina("test_images/001.png")

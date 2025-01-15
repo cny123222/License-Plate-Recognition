@@ -20,10 +20,12 @@ def extract_plate_yolo(image, expand_ratio=0.2):
     使用 YOLOv5 模型定位车牌并提取颜色，同时对检测框进行扩展
     :param image: 输入的原始图像
     :param expand_ratio: 扩展比例，每边扩展的比例
-    :return: 检测到的车牌图像及车牌颜色
+    :return: 检测到的车牌图像及车牌颜色 
     """
     # YOLOv5 模型推理
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     results = model(image, size=640)
+    results.save(save_dir='figures/')
     predictions = results.pred[0]
 
     # 如果没有检测到任何车牌
@@ -32,6 +34,7 @@ def extract_plate_yolo(image, expand_ratio=0.2):
 
     # 获取第一个检测到的车牌边界框（默认置信度最高）
     box = predictions[0, :4].cpu().numpy().astype(int)  # 转换为整数坐标
+    # x1, y1, x2, y2 = expand_bbox(image, box, expand_ratio)
     x1, y1, x2, y2 = expand_bbox(image, box, expand_ratio)
     plate_image = image[y1:y2, x1:x2]
 
@@ -275,28 +278,28 @@ def is_plate_color(hsv_img, lower_bound, upper_bound):
 
 
 # 测试代码
-if __name__ == "__main__":
-    image_paths = traverse_images("test_images")
-    for image_path in image_paths:
-        # 加载测试图像
-        test_image = cv2.imread(image_path)
+# if __name__ == "__main__":
+#     image_paths = traverse_images("test_images")
+#     for image_path in image_paths:
+#         # 加载测试图像
+#         test_image = cv2.imread(image_path)
 
-        # 使用 YOLOv5 提取车牌
-        plate_image, plate_color = extract_plate_yolo(test_image, expand_ratio=0.1)
+#         # 使用 YOLOv5 提取车牌
+#         plate_image, plate_color = extract_plate_yolo(test_image, expand_ratio=0.1)
 
-        # 显示结果
-        if plate_image is not None:
-            print(f"车牌颜色: {plate_color}")
-            cv2.imshow("Detected Plate", plate_image)
-            cv2.waitKey(0)
-            cv2.destroyAllWindows()
-        else:
-            print("未检测到车牌")
+#         # 显示结果
+#         if plate_image is not None:
+#             print(f"车牌颜色: {plate_color}")
+#             cv2.imshow("Detected Plate", plate_image)
+#             cv2.waitKey(0)
+#             cv2.destroyAllWindows()
+#         else:
+#             print("未检测到车牌")
 
 
 if __name__ == '__main__':
-    origin_image = cv2.imread("test_images/034.jpg")
+    origin_image = cv2.imread("test_images/031.jpg")
     plate_image, plate_color = extract_plate_yolo(origin_image)
     print(f"车牌颜色: {plate_color}")
     # cv_show("plate", plate_image)
-    cv2.imwrite("plate.jpg", plate_image)
+    # cv2.imwrite("plate.jpg", plate_image)
