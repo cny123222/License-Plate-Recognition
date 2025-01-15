@@ -1,1 +1,1 @@
-# See our `.exe` in `dist.zip`
+# See our `.exe` in `final.zip`
