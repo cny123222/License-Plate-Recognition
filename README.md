@@ -1,1 +1,1 @@
-# See our `.exe` in `final.zip`
+# See our `ui.exe` in  `final.zip` (dist/ui/ui.exe)
