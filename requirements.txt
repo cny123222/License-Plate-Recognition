@@ -1,0 +1,9 @@
+opencv-python
+numpy
+matplotlib
+tkinter
+yolov5
+ultralytics
+rapidocr_onnxruntime
+torch
+torchvision

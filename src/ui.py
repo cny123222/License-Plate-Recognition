@@ -3,9 +3,11 @@ from tkinter import *
 # from tkinter.ttk import *
 from PIL import Image, ImageTk
 from tkinter.font import Font
-from extract import extract_plate
-from split import split_char
-from recognition import recognize_characters
+from extract import extract_plate_yolo
+from retina import extract_retina
+from split_char import split_char
+from color import detect_plate_color
+import os
 import cv2
 
 COLOR_MAP = {
@@ -24,7 +26,7 @@ class WinGUI(Tk):
         self.__win()
         self.pyt = None # 原始图片 类型为ImageTk.PhotoImage
         self.locate = None # 车牌定位图 类型为ImageTk.PhotoImage
-        self.color = "" # 车牌颜色 类型为str
+        self.color = ""  # 车牌颜色 类型为str
         self.result = "" # 识别结果 类型为str
         self.pic_path = "" # 原图路径 类型为str
         self.tk_frame_frame_origin = self.__tk_frame_frame_origin(self)
@@ -62,30 +64,77 @@ class WinGUI(Tk):
         self.geometry(geometry)
         
         self.resizable(width=False, height=False)
-
+    
     # 连接识别函数
     def connection(self, image_path):
         """
         调用主程序完成车牌定位、字符分割与识别
         返回定位图路径、识别结果、车牌颜色
         """
-        origin_image = cv2.imread(image_path)
-        plate_image, plate_color = extract_plate(origin_image)
-        char_images = split_char(plate_image)
-        characters = recognize_characters(char_images)
-        ### upd 2025/1/14 added · between '苏C' and 'Q123222'
-        new_characters = characters[0:2]
-        new_characters += '·'
-        new_characters += characters[2:]
-        characters = new_characters
+        try:
+            chars = "未检测到！"
+            color_code = "#000000"
+            
+            origin_image = cv2.imread(image_path)
+            plate_image = extract_plate_yolo(origin_image)
 
-        # 将颜色字符串转换为颜色编码
-        color_code = COLOR_MAP.get(plate_color, "#FFFFFF")
+            filename = os.path.basename(image_path)
+            path = os.path.join(".tmp", filename)
 
-        # 保存车牌定位图临时路径
-        cv2.imwrite("tmp/temp_plate.jpg", plate_image)
-        return "tmp/temp_plate.jpg", characters, color_code
-    
+            cv2.imwrite(path, plate_image if plate_image is not None else origin_image)
+
+            print("plate_image", plate_image is not None)
+
+            plate_retina = extract_retina(image_path if plate_image is None else path, path)
+
+            print("plate_retina", plate_retina)
+
+            chars = split_char(image_path if not plate_retina else path)
+
+            if not chars:
+                return path, "未检测到！", "#000000"
+            
+            plate_color = detect_plate_color(cv2.imread(path))
+
+            # origin_image = cv2.imread(image_path)
+            # plate_image = extract_plate_yolo(origin_image)
+            
+            # cv2.imwrite("plate.jpg",plate_image)
+
+            # if(plate_image is None):
+            #     plate_retina = extract_retina(image_path)
+            #     if(plate_retina == False):
+            #         chars = split_char(image_path)
+            #         if(chars == None):
+            #             print("没有检测到车牌！！！")
+            #             return
+            #     else:
+            #         chars = split_char("plate.jpg")
+            # else:
+            #     plate_retina = extract_retina("plate.jpg")
+            # characters = split_char("plate.jpg")
+            # print(characters)
+            # ### upd 2025/1/14 added · between '苏C' and 'Q123222'
+            if(chars[2] != '·'):
+                new_characters = chars[0:2]
+                new_characters += '·'
+                new_characters += chars[2:]
+                chars = new_characters
+            # print(characters)
+            plate_color = detect_plate_color(cv2.imread(path))
+
+            if(len(chars) == 9):
+                plate_color = "Green"
+
+            # 将颜色字符串转换为颜色编码
+            color_code = COLOR_MAP.get(plate_color, "#FFFFFF")
+
+            # 保存车牌定位图临时路径
+            # cv2.imwrite("tmp/temp_plate.jpg", plate_image)
+            return path, chars, color_code
+        except Exception as e:
+            print("here", e)
+            return path, chars, color_code
     # “识别图片”按键对应的函数 作用是处理图片得到车牌并显示定位和结果
     def work(self):
         """

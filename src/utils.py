@@ -11,12 +11,6 @@ def cv_show(name, img):
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-def cv_save(name, img):
-    """
-    图片保存
-    """
-    cv2.imwrite(name, img)
-
 
 def plt_show_color(img):
     """
